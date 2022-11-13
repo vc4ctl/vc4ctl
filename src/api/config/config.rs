@@ -42,7 +42,11 @@ fn save_config(config: &Config) -> Result<()> {
 
   let result = match home::home_dir() {
     Some(home) => {
-      let path = home.join(".vc4/config.yaml").clone();
+      let path = home.join(".vc4/config.yaml");
+
+      if !path.exists() {
+        std::fs::File::create(path.clone())?;
+      }
 
       match std::fs::write(path, contents) {
         Ok(()) => Ok(()),

@@ -1,0 +1,91 @@
+name: release
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - "main"
+
+env:
+  MIN_SUPPORTED_RUST_VERSION: "1.64.0"
+  CICD_INTERMEDIATES_DIR: "_cicd-intermediates"
+  CARGO_TERM_COLOR: always
+  #Fix these up soon
+  #RUSTFLAGS: "-D warnings"
+
+jobs:
+  build:
+    name: build-${{ matrix.job.target }}
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { os: ubuntu-20.04, target: aarch64-unknown-linux-gnu }
+          - { os: ubuntu-20.04, target: x86_64-unknown-linux-gnu }
+
+          - { os: macos-12, target: x86_64-apple-darwin }
+          - { os: macos-12, target: aarch64-apple-darwin }
+
+          - { os: windows-2019, target: x86_64-pc-windows-msvc }
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.MIN_SUPPORTED_RUST_VERSION }}
+          target: ${{ matrix.job.target }}
+          override: true
+          default: true
+          profile: minimal
+
+      - name: Handle Rust Dependencies Caching
+        uses: Swatinem/rust-cache@v1
+        with:
+          key: v1-${{ matrix.job.target }}
+
+      - name: Build Release Binary
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Rename Binary
+        if: matrix.job.target != 'x86_64-pc-windows-msvc'
+        shell: bash
+        run: |
+          mv target/release/vc4ctl vc4ctl-${{ matrix.job.target }}
+
+      - name: Rename Binary.exe
+        if: matrix.job.target == 'x86_64-pc-windows-msvc'
+        shell: bash
+        run: |
+          mv target/release/vc4ctl.exe vc4ctl-${{ matrix.job.target }}.exe
+
+      - name: Upload Artifact
+        if: matrix.job.target != 'x86_64-pc-windows-msvc'
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          prerelease: false
+          name: Unreleased
+          generate_release_notes: false
+          fail_on_unmatched_files: true
+          files: |
+            comtrya-${{ matrix.job.target }}
+
+      - name: Upload Artifact.exe
+        if: matrix.job.target == 'x86_64-pc-windows-msvc'
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          prerelease: false
+          name: Unreleased
+          generate_release_notes: false
+          fail_on_unmatched_files: true
+          files: |
+            comtrya-${{ matrix.job.target }}.exe

@@ -75,7 +75,7 @@ jobs:
           generate_release_notes: false
           fail_on_unmatched_files: true
           files: |
-            comtrya-${{ matrix.job.target }}
+            vc4ctl-${{ matrix.job.target }}
 
       - name: Upload Artifact.exe
         if: matrix.job.target == 'x86_64-pc-windows-msvc'
@@ -88,4 +88,4 @@ jobs:
           generate_release_notes: false
           fail_on_unmatched_files: true
           files: |
-            comtrya-${{ matrix.job.target }}.exe
+            vc4ctl-${{ matrix.job.target }}.exe

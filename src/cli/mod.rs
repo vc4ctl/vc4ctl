@@ -12,15 +12,15 @@ use get::GetArgs;
 #[command(about = "vc4ctl - a CLI for interacting with Crestron VC-4 servers")]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Option<Commands>,    
+    pub command: Option<Commands>,
 
     #[command(flatten)]
-    pub verbose: Verbosity
+    pub verbose: Verbosity,
 }
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     /// Configure server information
     Config(Config),
-    Get(GetArgs)
+    Get(GetArgs),
 }

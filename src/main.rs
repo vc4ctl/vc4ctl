@@ -1,16 +1,18 @@
 mod api;
 mod cli;
 
-use api::config::{add_server, remove_server, update_server, use_server, get_servers};
+use api::config::{add_server, get_servers, remove_server, update_server, use_server};
+use api::get::get_resource;
 use clap::Parser;
+use cli::config::ConfigCommands;
 use cli::{Cli, Commands};
-use cli::config::{ConfigCommands};
+use log;
+use std::result::Result::Ok;
 use tracing::metadata::LevelFilter;
 use tracing::{Level, Subscriber};
 use tracing_subscriber::FmtSubscriber;
-use log;
 
-fn configure_tracing(args:&Cli) -> impl Subscriber {
+fn configure_tracing(args: &Cli) -> impl Subscriber {
     let builder = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
         .with_target(false)
@@ -22,11 +24,12 @@ fn configure_tracing(args:&Cli) -> impl Subscriber {
         log::LevelFilter::Info => builder.with_max_level(LevelFilter::INFO),
         log::LevelFilter::Off => builder.with_max_level(LevelFilter::OFF),
         log::LevelFilter::Trace => builder.with_max_level(LevelFilter::TRACE),
-        log::LevelFilter::Warn => builder.with_max_level(LevelFilter::WARN)
-    }.finish()
+        log::LevelFilter::Warn => builder.with_max_level(LevelFilter::WARN),
+    }
+    .finish()
 }
 
-fn main() -> anyhow::Result<()> {  
+fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     let subscriber = configure_tracing(&cli);
@@ -72,6 +75,10 @@ fn main() -> anyhow::Result<()> {
             None => {
                 return Err(anyhow::anyhow!("No valid arguments"));
             }
+        },
+        Some(Commands::Get(args)) => match get_resource(args) {
+            Ok(()) => return Ok(()),
+            Err(error) => return Err(anyhow::anyhow!(error)),
         },
         None => {
             println!("No valid arguments")

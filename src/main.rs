@@ -1,5 +1,6 @@
 mod api;
 mod cli;
+mod utils;
 
 use api::config::{add_server, get_servers, remove_server, update_server, use_server};
 use api::get::get_resource;

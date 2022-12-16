@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::api::config;
 use crate::cli::get::{GetArgs, ResourceTypes};
+use crate::utils::constants::DEFAULT_PATH;
 use crate::utils::http_client::get;
 use anyhow::{Context, Result};
 use reqwest::header::{ACCEPT, AUTHORIZATION};
@@ -13,7 +14,7 @@ use crate::utils::vc4_entities::{Program, ProgramInstance, Response};
 
 use super::config::Server;
 
-const DEFAULT_PATH: &str = "/VirtualControl/config/api/";
+
 
 pub fn get_resource(args: &GetArgs) -> Result<()> {
     let server =

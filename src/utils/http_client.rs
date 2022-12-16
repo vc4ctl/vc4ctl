@@ -1,15 +1,12 @@
-use reqwest::blocking::multipart::Form;
-use reqwest::header::{ACCEPT, AUTHORIZATION};
-use reqwest::blocking::Client;
-use serde::de::DeserializeOwned;
 use anyhow::{Context, Result};
+use reqwest::blocking::multipart::Form;
+use reqwest::blocking::Client;
+use reqwest::header::{ACCEPT, AUTHORIZATION};
+use serde::de::DeserializeOwned;
 
 use crate::api::config::Server;
 
-
-
-pub fn get<T:DeserializeOwned>(server: &Server, path: &str) -> Result<T>
-{
+pub fn get<T: DeserializeOwned>(server: &Server, path: &str) -> Result<T> {
     let url = format!("{}{}", server.url, path);
 
     let client = Client::new();
@@ -29,7 +26,7 @@ pub fn get<T:DeserializeOwned>(server: &Server, path: &str) -> Result<T>
     Ok(response)
 }
 
-pub fn put(server: &Server, path: &str, form: Form) -> Result<()>{
+pub fn put(server: &Server, path: &str, form: Form) -> Result<()> {
     let url = format!("{}{}", server.url, path);
 
     let client = Client::new();

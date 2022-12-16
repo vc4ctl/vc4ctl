@@ -11,10 +11,7 @@ use tabled::{Disable, Style};
 
 use crate::utils::vc4_entities::{Program, ProgramInstance, Response};
 
-
 use super::config::Server;
-
-
 
 pub fn get_resource(args: &GetArgs) -> Result<()> {
     let server =
@@ -43,7 +40,7 @@ fn get_rooms(server: &Server, room_id: &Option<String>, wide: &bool) -> Result<(
         None => format!("{}{}", DEFAULT_PATH, "ProgramInstance"),
     };
 
-    let response: Response = match get(server, &path){
+    let response: Response = match get(server, &path) {
         Ok(response) => response,
         Err(error) => return Err(anyhow::anyhow!("Unable to deserialize response; {}", error)),
     };
@@ -84,37 +81,36 @@ fn get_rooms(server: &Server, room_id: &Option<String>, wide: &bool) -> Result<(
 }
 
 fn get_programs(server: &Server, room_id: &Option<String>, wide: &bool) -> Result<()> {
-  let url = match room_id {
-      Some(id) => format!("{}{}{}/{}", server.url, DEFAULT_PATH, "ProgramLibrary", id),
-      None => format!("{}{}{}", server.url, DEFAULT_PATH, "ProgramLibrary"),
-  };
+    let url = match room_id {
+        Some(id) => format!("{}{}{}/{}", server.url, DEFAULT_PATH, "ProgramLibrary", id),
+        None => format!("{}{}{}", server.url, DEFAULT_PATH, "ProgramLibrary"),
+    };
 
-  let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::new();
 
-  let res = client
-      .get(url)
-      .header(AUTHORIZATION, server.token.as_str())
-      .header(ACCEPT, "application/json")
-      .send()
-      .with_context(|| "Error occured while sending request")?;
+    let res = client
+        .get(url)
+        .header(AUTHORIZATION, server.token.as_str())
+        .header(ACCEPT, "application/json")
+        .send()
+        .with_context(|| "Error occured while sending request")?;
 
-  let response: Response = match res.json() {
-      Ok(response) => response,
-      Err(error) => return Err(anyhow::anyhow!("Unable to deserialize response; {}", error)),
-  };
+    let response: Response = match res.json() {
+        Ok(response) => response,
+        Err(error) => return Err(anyhow::anyhow!("Unable to deserialize response; {}", error)),
+    };
 
-  let programs: HashMap<u32, Program> =
-      match response.device.programs.program_library {
-          Some(instances) => instances,
-          None => HashMap::new(),
-      };
+    let programs: HashMap<u32, Program> = match response.device.programs.program_library {
+        Some(instances) => instances,
+        None => HashMap::new(),
+    };
 
-  let program_vec: Vec<Program> = programs.values().cloned().collect();
+    let program_vec: Vec<Program> = programs.values().cloned().collect();
 
-  if !wide {
-    let table = tabled::Table::new(program_vec)
-          .with(Style::blank())
-          .with(Disable::column(ByColumnName::new("program_id")))
+    if !wide {
+        let table = tabled::Table::new(program_vec)
+            .with(Style::blank())
+            .with(Disable::column(ByColumnName::new("program_id")))
             .with(Disable::column(ByColumnName::new("notes")))
             .with(Disable::column(ByColumnName::new("mobility_file")))
             .with(Disable::column(ByColumnName::new("mobility_file_ts")))
@@ -129,19 +125,16 @@ fn get_programs(server: &Server, room_id: &Option<String>, wide: &bool) -> Resul
             .with(Disable::column(ByColumnName::new("device_db_version")))
             .with(Disable::column(ByColumnName::new("include_dat_version")))
             .with(Disable::column(ByColumnName::new("app_file_ts")))
-          .to_string();
-      
+            .to_string();
 
-      print!("{}", table);
-  } else {
-    let table = tabled::Table::new(program_vec)
-    .with(Style::blank())          
-    .to_string();
+        print!("{}", table);
+    } else {
+        let table = tabled::Table::new(program_vec)
+            .with(Style::blank())
+            .to_string();
 
-      print!("{}", table);
-  }
+        print!("{}", table);
+    }
 
-  Ok(())
+    Ok(())
 }
-
-

@@ -6,7 +6,6 @@ use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{self, Verbosity};
 use config::Config;
 
-
 use get::GetArgs;
 use room_control::RoomControlArgs;
 

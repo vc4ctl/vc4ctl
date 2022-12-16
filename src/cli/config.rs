@@ -52,7 +52,6 @@ impl Config {
     }
 }
 
-
 #[derive(Subcommand, Debug)]
 pub enum ConfigCommands {
     Add(ConfigAddArgs),

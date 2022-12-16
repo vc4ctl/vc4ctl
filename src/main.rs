@@ -2,9 +2,8 @@ mod api;
 mod cli;
 mod utils;
 
-
 use api::get::get_resource;
-use api::room_control::{stop_room, start_room};
+use api::room_control::{start_room, stop_room};
 use clap::Parser;
 
 use cli::{Cli, Commands};

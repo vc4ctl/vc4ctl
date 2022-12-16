@@ -1,5 +1,6 @@
 pub mod config;
 pub mod get;
+pub mod room_control;
 
 use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{self, Verbosity};
@@ -7,8 +8,7 @@ use config::Config;
 
 
 use get::GetArgs;
-
-
+use room_control::RoomControlArgs;
 
 #[derive(Parser, Debug)]
 #[command(author, version)]
@@ -26,4 +26,6 @@ pub enum Commands {
     /// Configure server information
     Config(Config),
     Get(GetArgs),
+    Stop(RoomControlArgs),
+    Start(RoomControlArgs),
 }

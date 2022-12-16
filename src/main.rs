@@ -4,6 +4,7 @@ mod utils;
 
 
 use api::get::get_resource;
+use api::room_control::{stop_room, start_room};
 use clap::Parser;
 
 use cli::{Cli, Commands};
@@ -40,6 +41,14 @@ fn main() -> anyhow::Result<()> {
     let result = match &cli.command {
         Some(Commands::Config(args)) => args.handle_config(),
         Some(Commands::Get(args)) => match get_resource(args) {
+            Ok(()) => return Ok(()),
+            Err(error) => return Err(anyhow::anyhow!(error)),
+        },
+        Some(Commands::Start(args)) => match start_room(args) {
+            Ok(()) => return Ok(()),
+            Err(error) => return Err(anyhow::anyhow!(error)),
+        },
+        Some(Commands::Stop(args)) => match stop_room(args) {
             Ok(()) => return Ok(()),
             Err(error) => return Err(anyhow::anyhow!(error)),
         },

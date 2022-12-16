@@ -1,15 +1,16 @@
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use tabled::Tabled;
+use tabled::{Style, Tabled};
+use tracing::instrument;
 
-use crate::cli::cli::{ConfigAddArgs, ConfigRemoveArgs, ConfigUpdateArgs, ConfigUseArgs};
+use crate::cli::config::{ConfigAddArgs, ConfigRemoveArgs, ConfigUpdateArgs, ConfigUseArgs};
 
-#[derive(Serialize, Deserialize, Debug, Tabled)]
+#[derive(Serialize, Deserialize, Debug, Tabled, Clone)]
 pub struct Server {
-    url: String,
+    pub url: String,
     name: String,
-    token: String,
+    pub token: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -22,6 +23,7 @@ pub struct Config {
     servers: Vec<Server>,
 }
 
+#[instrument(skip(args))]
 pub fn add_server(args: ConfigAddArgs) -> Result<()> {
     let mut config = get_config().with_context(|| "Unable to retrieve config")?;
 
@@ -43,6 +45,7 @@ pub fn add_server(args: ConfigAddArgs) -> Result<()> {
     save_config(&config)
 }
 
+#[instrument(skip(args))]
 pub fn remove_server(args: &ConfigRemoveArgs) -> Result<()> {
     let mut config = get_config().with_context(|| "Unable to retrieve config")?;
 
@@ -55,6 +58,7 @@ pub fn remove_server(args: &ConfigRemoveArgs) -> Result<()> {
     save_config(&config)
 }
 
+#[instrument(skip(args))]
 pub fn update_server(args: &ConfigUpdateArgs) -> Result<()> {
     let mut config = get_config().with_context(|| "Unable to retrieve config")?;
 
@@ -81,6 +85,7 @@ pub fn update_server(args: &ConfigUpdateArgs) -> Result<()> {
     save_config(&config)
 }
 
+#[instrument(skip(args))]
 pub fn use_server(args: ConfigUseArgs) -> Result<()> {
     let mut config = get_config().with_context(|| "Unable to retrieve config")?;
 
@@ -96,16 +101,48 @@ pub fn use_server(args: ConfigUseArgs) -> Result<()> {
     save_config(&config)
 }
 
+#[instrument()]
 pub fn get_servers() -> Result<()> {
     let config = get_config().with_context(|| "Unable to retrieve config")?;
 
-    let table = tabled::Table::new(config.servers).to_string();
+    let table = tabled::Table::new(config.servers)
+        .with(Style::modern())
+        .to_string();
 
     print!("{}", table);
 
     Ok(())
 }
 
+#[instrument()]
+pub fn get_current_server() -> Result<Server> {
+    let config = get_config().with_context(|| "Unable to rerieve config")?;
+
+    if config.current_server.is_empty() {
+        return Err(anyhow!(
+            "No server to use. Use `vc4ctl config use <NAME>` to set a server to use"
+        ));
+    }
+
+    let server_to_use = match config
+        .servers
+        .iter()
+        .find(|s| s.name == config.current_server)
+        .cloned()
+    {
+        Some(s) => s,
+        None => {
+            return Err(anyhow!(
+                "Current server {} is not in configuration!",
+                config.current_server
+            ))
+        }
+    };
+
+    Ok(server_to_use)
+}
+
+#[instrument(skip(config))]
 fn save_config(config: &Config) -> Result<()> {
     let contents = serde_yaml::to_string(config)?;
 
@@ -136,6 +173,7 @@ fn save_config(config: &Config) -> Result<()> {
     result
 }
 
+#[instrument()]
 fn get_config() -> Result<Config> {
     let config = match get_config_file_exists() {
         Some(config_path) => {
@@ -160,6 +198,7 @@ fn get_config() -> Result<Config> {
     Ok(config)
 }
 
+#[instrument()]
 fn get_config_file_exists() -> Option<PathBuf> {
     if let Some(home) = home::home_dir() {
         let config = home.join(".vc4/config.yaml");

@@ -25,7 +25,10 @@ pub struct Cli {
 pub enum Commands {
     /// Configure server information
     Config(Config),
+    /// Get information about a resource (room, program, etc.)
     Get(GetArgs),
+    /// Stop a room
     Stop(RoomControlArgs),
+    /// Start a room
     Start(RoomControlArgs),
 }

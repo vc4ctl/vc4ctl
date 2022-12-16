@@ -2,10 +2,10 @@ mod api;
 mod cli;
 mod utils;
 
-use api::config::{add_server, get_servers, remove_server, update_server, use_server};
+
 use api::get::get_resource;
 use clap::Parser;
-use cli::config::ConfigCommands;
+
 use cli::{Cli, Commands};
 use log;
 use std::result::Result::Ok;
@@ -37,54 +37,16 @@ fn main() -> anyhow::Result<()> {
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    match &cli.command {
-        Some(Commands::Config(args)) => match &args.config_commands {
-            Some(ConfigCommands::Add(args)) => match add_server(args.clone()) {
-                Ok(()) => {
-                    println!("Server {} successfully added", args.name);
-                    return Ok(());
-                }
-                Err(error) => return Err(anyhow::anyhow!(error)),
-            },
-            Some(ConfigCommands::Remove(args)) => match remove_server(args) {
-                Ok(()) => {
-                    println!("Server {} successfully removed", args.name);
-                    return Ok(());
-                }
-                Err(error) => return Err(anyhow::anyhow!(error)),
-            },
-            Some(ConfigCommands::Update(args)) => match update_server(args) {
-                Ok(()) => {
-                    println!("Server {} successfully updated", args.name);
-                    return Ok(());
-                }
-                Err(error) => return Err(anyhow::anyhow!(error)),
-            },
-            Some(ConfigCommands::Use(args)) => match use_server(args.clone()) {
-                Ok(()) => {
-                    println!("Using Server {}", args.name);
-                    return Ok(());
-                }
-                Err(error) => return Err(anyhow::anyhow!(error)),
-            },
-            Some(ConfigCommands::GetServers(_args)) => match get_servers() {
-                Ok(()) => {
-                    return Ok(());
-                }
-                Err(error) => return Err(anyhow::anyhow!(error)),
-            },
-            None => {
-                return Err(anyhow::anyhow!("No valid arguments"));
-            }
-        },
+    let result = match &cli.command {
+        Some(Commands::Config(args)) => args.handle_config(),
         Some(Commands::Get(args)) => match get_resource(args) {
             Ok(()) => return Ok(()),
             Err(error) => return Err(anyhow::anyhow!(error)),
         },
         None => {
-            println!("No valid arguments")
+            return Err(anyhow::anyhow!("No command provided"));
         }
-    }
+    };
 
-    Ok(())
+    result
 }
